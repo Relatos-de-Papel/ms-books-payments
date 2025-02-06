@@ -6,8 +6,12 @@ import com.unir.payments.data.OrderJpaRepository;
 import com.unir.payments.data.model.Order;
 import com.unir.payments.data.model.OrderDetail;
 import com.unir.payments.facade.BooksFacade;
+import com.unir.payments.facade.UsersFacade;
 import com.unir.payments.facade.model.Book;
+import com.unir.payments.facade.model.User;
 import com.unir.payments.service.OrderService;
+import com.unir.payments.service.model.OrderDTO;
+import com.unir.payments.service.model.OrderDetailDTO;
 import jakarta.xml.bind.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,6 +32,8 @@ public class OrderServiceImpl implements OrderService {
     private OrderDetailJpaRepository orderDetailJpaRepository;
     @Autowired
     private BooksFacade booksFacade;
+    @Autowired
+    private UsersFacade usersFacade;
 
 
     @Override
@@ -39,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order findById(Long id) {
         Order order = this.orderJpaRepository.findById(id).orElse(null);
+
         if (order != null) {
             order.getOrderDetails().forEach(detail -> {
                 detail.setOrder(null);
@@ -78,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order saveOrder(Order object) throws ValidationException {
         List<OrderDetail> detailList = object.getOrderDetails();
+        validUser(object);
         validBook(detailList);
 
         Double totalPrice = detailList.stream().map(OrderServiceImpl::multiply).reduce(0.0, Double::sum);
@@ -91,6 +99,30 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setOrderDetails(newDetailList);
 
         return newOrder;
+    }
+
+    @Override
+    public OrderDTO getOrder(Long orderId) {
+        Order order = this.orderJpaRepository.findById(orderId).orElse(null);
+        OrderDTO dto = OrderDTO.builder()
+                .id(order.getId())
+                .orderNumber(order.getOrderNumber())
+                .dateCreated(order.getDateCreated())
+                .paymentType(order.getPaymentType())
+                .user(usersFacade.getUser(order.getUserId().toString()))
+                .status(order.getStatus())
+                .totalPrice(order.getTotalPrice())
+                .build();
+
+       List<OrderDetailDTO> orderDetailDTOS = order.getOrderDetails().stream().map(detail -> OrderDetailDTO.builder()
+                .id(detail.getId())
+                .price(detail.getPrice())
+                .quantity(detail.getQuantity())
+                .book(booksFacade.getBook(detail.getBookId().toString()))
+                .build()).toList();
+
+       dto.setOrderDetails(orderDetailDTOS);
+        return dto;
     }
 
     private static Double multiply(OrderDetail orderDetail) {
@@ -110,6 +142,13 @@ public class OrderServiceImpl implements OrderService {
                 throw new ValidationException("No hay stock");
             }
             orderDetail.setPrice(book.getUnitPrice());
+        }
+    }
+
+    private void validUser(Order order) throws ValidationException {
+        User user = usersFacade.getUser(order.getUserId().toString());
+        if (user == null) {
+            throw new ValidationException("El usuario no existe");
         }
     }
 

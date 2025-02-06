@@ -7,6 +7,7 @@ import com.unir.payments.data.model.Status;
 import com.unir.payments.service.OrderService;
 import com.unir.payments.service.PaymentTypeService;
 import com.unir.payments.service.StatusService;
+import com.unir.payments.service.model.OrderDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -188,8 +189,8 @@ public class BookPaymentsController {
             responseCode = "404",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class)),
             description = "No se ha encontrado la orden de pedido con el identificador indicado.")
-    public ResponseEntity<Order> getOrderById(@PathVariable("id") @Valid Long id) {
-        Order order = orderService.findById(id);
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable("id") @Valid Long id) {
+        OrderDTO order = orderService.getOrder(id);
         return ResponseEntity.ok(order);
     }
 

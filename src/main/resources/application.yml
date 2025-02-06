@@ -36,3 +36,6 @@ eureka:
 ## Configuracion secundaria (custom)
 getBook:
   url: http://ms-books-catalogue/books/%s
+## Configuracion secundaria (custom)
+getUser:
+  url: http://ms-books-users/users/%s
