@@ -9,7 +9,7 @@ spring:
   application:
     name: ms-books-payments
   datasource:
-    url: jdbc:mysql://${ENDPOINT_DB_PAYMENTS:localhost}:3307/payments
+    url: jdbc:mysql://${ENDPOINT_DB_PAYMENTS:localhost}:3306/payments
     username: ${USER_DB_PAYMENTS:usr_db_payments}
     password: ${PASS_DB_PAYMENTS:book_2025}
     driver-class-name: com.mysql.cj.jdbc.Driver
